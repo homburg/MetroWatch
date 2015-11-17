@@ -22,9 +22,9 @@ Slot on-screen layout:
 #define WIDTH  58 // dimension image number
 #define HEIGHT  70
 #define TOTAL_SLOTS 4 // slots
-#define NUMBER_OF_IMAGES 10 //total numbers
+#define NUMBER_OF_IMAGES 12 //total numbers
 #define EMPTY_SLOT -1 
-#define UUID {0x7d,0x04,0xcb,0x24,0x49,0x88,0x42,0xb8,0xbb,0xa0,0x15,0x35,0xba,0xf2,0x90,0x43}//Universally Unique Identifier
+#define UUID {0x83,0x96,0x3c,0x01,0xaa,0xad,0x47,0x2d,0xb6,0xde,0x8b,0xa6,0x03,0x93,0x13,0x58}//Universally Unique Identifier
 
 Window *window;//initialize window
 BitmapLayer *bitmap_layer[TOTAL_SLOTS];
@@ -41,7 +41,7 @@ const int IMAGE_RESOURCE_IDS[NUMBER_OF_IMAGES] = {
   RESOURCE_ID_IMAGE_N0, RESOURCE_ID_IMAGE_N1, RESOURCE_ID_IMAGE_N2,
   RESOURCE_ID_IMAGE_N3, RESOURCE_ID_IMAGE_N4, RESOURCE_ID_IMAGE_N5,
   RESOURCE_ID_IMAGE_N6, RESOURCE_ID_IMAGE_N7, RESOURCE_ID_IMAGE_N8,
-  RESOURCE_ID_IMAGE_N9
+  RESOURCE_ID_IMAGE_N9, RESOURCE_ID_IMAGE_NA, RESOURCE_ID_IMAGE_NB
 };
 
 // this load an image to the slot
@@ -57,7 +57,7 @@ void load_image_into_slot(int slot_number, int digit_value) {
     return;
   }
 
-  if ((digit_value < 0) || (digit_value > 9)) {
+  if ((digit_value < 0) || (digit_value > 11)) {
     return;
   }
 
@@ -115,7 +115,7 @@ void display_value(unsigned short value, unsigned short row_number, bool show_fi
      Includes optional blanking of first leading zero,
      i.e. displays ' 0' rather than '00'.
    */
-  value = value % 100; // Maximum of two digits per row.
+  value = value % 144; // Maximum of two digits per row.
 
   // Column order is: | Column 0 | Column 1 |
   // (We process the columns in reverse order because that makes
@@ -124,11 +124,11 @@ void display_value(unsigned short value, unsigned short row_number, bool show_fi
 	for (int column_number = 1; column_number >= 0; column_number--) {
 	  
 		int slot_number = (row_number * 2) + column_number;
-		unload_image_from_slot(slot_number, value % 10);// deinit the slot
+		unload_image_from_slot(slot_number, value % 12);// deinit the slot
 
-		load_image_into_slot(slot_number, value % 10); // upload the slot
+		load_image_into_slot(slot_number, value % 12); // upload the slot
 		
-		value = value / 10;//Column 0
+		value = value / 12;//Column 0
 	}
 }
 
@@ -138,7 +138,12 @@ void tick_handler(struct tm *tick_time, TimeUnits units_changed)
 {
     //Here we will update the watchface display
 	display_value(get_display_hour(tick_time->tm_hour), 0, false);//HOUR
-  	display_value(tick_time->tm_min, 1, true);//MINUTE
+
+	unsigned short minute = tick_time->tm_min;
+	if (minute > 0) {
+		minute = ((minute*100)/60 * 144)/100;
+	}
+  	display_value(minute, 1, true);//MINUTE
 }
 
 
